@@ -1,0 +1,41 @@
+DROP DATABASE IF EXISTS businessflow;
+
+CREATE DATABASE businessflow
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+USE businessflow;
+
+CREATE TABLE usuarios (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    nombre VARCHAR(100) NOT NULL,
+    apellidos VARCHAR(150) NULL,
+    email VARCHAR(254) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    estado ENUM('PENDING', 'ACTIVE', 'BLOCKED', 'INACTIVE') NOT NULL DEFAULT 'PENDING',
+    email_verified_at DATETIME(6) NULL,
+    last_login_at DATETIME(6) NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    deleted_at DATETIME(6) NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_usuarios_email (email)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE roles (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    codigo VARCHAR(50) NOT NULL,
+    nombre VARCHAR(100) NOT NULL,
+    descripcion TEXT NULL,
+    estado ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+    is_system BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    deleted_at DATETIME(6) NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_roles_codigo (codigo)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
