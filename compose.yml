@@ -1,0 +1,36 @@
+services:
+  mariadb:
+    image: mariadb:11.8
+    environment:
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-businessflow}
+      MARIADB_USER: ${MARIADB_USER:-businessflow}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-businessflow_dev}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-businessflow_root_dev}
+    ports:
+      - "3306:3306"
+    volumes:
+      - businessflow_mariadb_data:/var/lib/mysql
+      - ./database/BusinessFlow.sql:/docker-entrypoint-initdb.d/001-businessflow.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  app:
+    build:
+      context: .
+    environment:
+      DB_URL: jdbc:mariadb://mariadb:3306/${MARIADB_DATABASE:-businessflow}
+      DB_USERNAME: ${MARIADB_USER:-businessflow}
+      DB_PASSWORD: ${MARIADB_PASSWORD:-businessflow_dev}
+      SERVER_PORT: 8080
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+volumes:
+  businessflow_mariadb_data:
