@@ -5,7 +5,7 @@ BusinessFlow es un backend para un ERP que se desarrollará de forma progresiva.
 ## Stack
 
 - Java 21
-- Spring Boot 3.5.16
+- Spring Boot 4.1.1
 - Maven
 - Spring Web, Spring Data JPA y Bean Validation
 - MariaDB
