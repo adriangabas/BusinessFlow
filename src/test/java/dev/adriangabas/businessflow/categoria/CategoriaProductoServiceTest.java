@@ -61,24 +61,37 @@ class CategoriaProductoServiceTest {
     }
 
     @Test
-    void actualizaCategoria() {
+    void inactivarCategoriaNoLaEliminaYPermaneceAccesibleYListada() {
         conservarEntidadAlGuardar();
         CategoriaProducto categoria = categoria();
         when(repository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(categoria));
+        when(repository.findAllByDeletedAtIsNullOrderByIdAsc()).thenReturn(List.of(categoria));
+
         var response = service.actualizar(1L,
                 new ActualizarCategoriaRequest("beb", "Bebidas", null, EstadoCategoria.INACTIVO));
+
         assertThat(response.codigo()).isEqualTo("BEB");
         assertThat(response.estado()).isEqualTo(EstadoCategoria.INACTIVO);
+        assertThat(categoria.getDeletedAt()).isNull();
+        assertThat(service.obtener(1L).estado()).isEqualTo(EstadoCategoria.INACTIVO);
+        assertThat(service.listar()).extracting("codigo").containsExactly("BEB");
     }
 
     @Test
-    void eliminaCategoriaDeFormaLogica() {
+    void eliminarCategoriaLaMarcaYLaExcluyeDeConsultasNormales() {
         conservarEntidadAlGuardar();
         CategoriaProducto categoria = categoria();
-        when(repository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(categoria));
+        when(repository.findByIdAndDeletedAtIsNull(1L))
+                .thenAnswer(invocation -> Optional.ofNullable(categoria.getDeletedAt() == null ? categoria : null));
+        when(repository.findAllByDeletedAtIsNullOrderByIdAsc())
+                .thenAnswer(invocation -> categoria.getDeletedAt() == null ? List.of(categoria) : List.of());
+
         service.eliminar(1L);
+
         assertThat(categoria.getEstado()).isEqualTo(EstadoCategoria.INACTIVO);
         assertThat(categoria.getDeletedAt()).isNotNull();
+        assertThat(service.listar()).isEmpty();
+        assertThatThrownBy(() -> service.obtener(1L)).isInstanceOf(CategoriaNoEncontradaException.class);
         verify(repository).save(categoria);
     }
 
