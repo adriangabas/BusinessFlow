@@ -1,6 +1,6 @@
 # BusinessFlow
 
-BusinessFlow es un backend para un ERP que se desarrollará de forma progresiva. Este repositorio contiene por ahora la infraestructura base; todavía no implementa módulos funcionales del negocio.
+BusinessFlow es un backend para un ERP que se desarrollará de forma progresiva. Actualmente incluye la infraestructura base y el módulo de categorías de producto.
 
 ## Stack
 
@@ -80,11 +80,35 @@ Respuesta esperada:
 {"status":"UP","service":"BusinessFlow"}
 ```
 
+## Categorías de producto
+
+El CRUD REST está disponible en `/api/categorias-producto`:
+
+| Método | Ruta | Resultado |
+| --- | --- | --- |
+| `POST` | `/api/categorias-producto` | Crea una categoría (`201`) |
+| `GET` | `/api/categorias-producto` | Lista las categorías no eliminadas (`200`) |
+| `GET` | `/api/categorias-producto/{id}` | Obtiene una categoría (`200`) |
+| `PUT` | `/api/categorias-producto/{id}` | Actualiza una categoría (`200`) |
+| `DELETE` | `/api/categorias-producto/{id}` | Desactiva una categoría (`204`) |
+
+Ejemplo de creación:
+
+```shell
+curl -X POST http://localhost:8080/api/categorias-producto \
+  -H "Content-Type: application/json" \
+  -d '{"codigo":"ALIM","nombre":"Alimentación","descripcion":"Productos alimentarios"}'
+```
+
+La eliminación es lógica: asigna el estado `INACTIVO`, registra `deleted_at` y oculta la categoría de las consultas. El código continúa reservado por la restricción única del esquema.
+
 ## Estructura actual
 
 ```text
 src/main/java/dev/adriangabas/businessflow/
 ├── BusinessFlowApplication.java
+├── categoria/
+├── error/
 └── health/HealthController.java
 src/main/resources/application.yml
 src/test/java/dev/adriangabas/businessflow/
@@ -93,4 +117,4 @@ compose.yml
 Dockerfile
 ```
 
-El paquete base es `dev.adriangabas.businessflow`. Se añadirán paquetes de módulos cuando exista funcionalidad real que los justifique.
+El paquete base es `dev.adriangabas.businessflow`; cada módulo funcional mantiene separadas sus capas HTTP, de negocio y persistencia.
