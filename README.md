@@ -1,6 +1,6 @@
 # BusinessFlow
 
-BusinessFlow es un backend para un ERP que se desarrollará de forma progresiva. Actualmente incluye la infraestructura base y el módulo de categorías de producto.
+BusinessFlow es un backend para un ERP que se desarrollará de forma progresiva. Actualmente incluye la infraestructura base y los módulos de categorías de producto y productos.
 
 ## Stack
 
@@ -102,6 +102,35 @@ curl -X POST http://localhost:8080/api/categorias-producto \
 
 La eliminación es lógica: asigna el estado `INACTIVO`, registra `deleted_at` y oculta la categoría de las consultas. El código continúa reservado por la restricción única del esquema.
 
+## Productos
+
+El CRUD REST está disponible en `/api/productos`:
+
+| Método | Ruta | Resultado |
+| --- | --- | --- |
+| `POST` | `/api/productos` | Crea un producto (`201`) |
+| `GET` | `/api/productos` | Lista los productos no eliminados (`200`) |
+| `GET` | `/api/productos/{id}` | Obtiene un producto (`200`) |
+| `PUT` | `/api/productos/{id}` | Actualiza un producto (`200`) |
+| `DELETE` | `/api/productos/{id}` | Elimina lógicamente un producto (`204`) |
+
+Los campos principales de escritura son `codigo`, `nombre`, `categoriaId`, `precioVenta`, `precioCoste`,
+`stockMinimo` y `unidadMedida`. Los valores permitidos para `unidadMedida` son `UNIDAD`, `KG`, `LITRO`,
+`METRO`, `CAJA` y `PAQUETE`. La respuesta incluye una representación resumida de la categoría con su id,
+código y nombre.
+
+Ejemplo de creación:
+
+```shell
+curl -X POST http://localhost:8080/api/productos \
+  -H "Content-Type: application/json" \
+  -d '{"codigo":"PROD-1","nombre":"Producto","categoriaId":1,"precioVenta":12.34,"precioCoste":5.67,"stockMinimo":3,"unidadMedida":"UNIDAD"}'
+```
+
+La categoría debe existir y no estar eliminada lógicamente. Una categoría `INACTIVA` sin `deleted_at` sigue
+siendo válida para conservar la compatibilidad con el modelo. El borrado del producto también es lógico:
+asigna `INACTIVO`, registra `deleted_at`, lo oculta de las consultas normales y mantiene reservado su código.
+
 ## Estructura actual
 
 ```text
@@ -109,6 +138,7 @@ src/main/java/dev/adriangabas/businessflow/
 ├── BusinessFlowApplication.java
 ├── categoria/
 ├── error/
+├── producto/
 └── health/HealthController.java
 src/main/resources/application.yml
 src/test/java/dev/adriangabas/businessflow/
