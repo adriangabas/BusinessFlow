@@ -2,6 +2,8 @@ package dev.adriangabas.businessflow.error;
 
 import dev.adriangabas.businessflow.categoria.CategoriaDuplicadaException;
 import dev.adriangabas.businessflow.categoria.CategoriaNoEncontradaException;
+import dev.adriangabas.businessflow.producto.ProductoDuplicadoException;
+import dev.adriangabas.businessflow.producto.ProductoNoEncontradoException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -17,14 +19,15 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(CategoriaNoEncontradaException.class)
-    ResponseEntity<ApiError> noEncontrada(CategoriaNoEncontradaException exception, HttpServletRequest request) {
+    @ExceptionHandler({CategoriaNoEncontradaException.class, ProductoNoEncontradoException.class})
+    ResponseEntity<ApiError> noEncontrada(RuntimeException exception, HttpServletRequest request) {
         return respuesta(HttpStatus.NOT_FOUND, exception.getMessage(), request, Map.of());
     }
 
-    @ExceptionHandler({CategoriaDuplicadaException.class, DataIntegrityViolationException.class})
+    @ExceptionHandler({CategoriaDuplicadaException.class, ProductoDuplicadoException.class,
+            DataIntegrityViolationException.class})
     ResponseEntity<ApiError> conflicto(RuntimeException exception, HttpServletRequest request) {
-        String mensaje = exception instanceof CategoriaDuplicadaException
+        String mensaje = exception instanceof CategoriaDuplicadaException || exception instanceof ProductoDuplicadoException
                 ? exception.getMessage() : "La operación entra en conflicto con datos existentes";
         return respuesta(HttpStatus.CONFLICT, mensaje, request, Map.of());
     }
