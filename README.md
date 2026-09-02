@@ -1,6 +1,6 @@
 # BusinessFlow
 
-BusinessFlow es un backend para un ERP que se desarrollará de forma progresiva. Actualmente incluye la infraestructura base y los módulos de clientes, categorías de producto y productos.
+BusinessFlow es un backend para un ERP que se desarrollará de forma progresiva. Actualmente incluye la infraestructura base y los módulos de usuarios, roles, clientes, categorías de producto y productos.
 
 ## Stack
 
@@ -160,6 +160,38 @@ La categoría debe existir y no estar eliminada lógicamente. Una categoría `IN
 siendo válida para conservar la compatibilidad con el modelo. El borrado del producto también es lógico:
 asigna `INACTIVO`, registra `deleted_at`, lo oculta de las consultas normales y mantiene reservado su código.
 
+## Usuarios y roles
+
+El CRUD de usuarios está disponible en `/api/usuarios` y el de roles en `/api/roles`. Ambos ofrecen `POST`,
+`GET` de listado, `GET /{id}`, `PUT /{id}` y `DELETE /{id}` con respuestas `201`, `200` o `204` según la
+operación. Los conflictos por email o código duplicado devuelven `409` y los recursos inexistentes o eliminados,
+`404`.
+
+Los estados de usuario son `PENDING`, `ACTIVE`, `BLOCKED` e `INACTIVE`; en creación se usa `PENDING` por
+defecto. Los estados de rol son `ACTIVE` e `INACTIVE`; en creación se usa `ACTIVE` por defecto. `isSystem` es
+`true` por defecto al crear un rol y debe indicarse explícitamente al actualizarlo.
+
+La creación de un usuario requiere `nombre`, `email` y `passwordHash`. Este último se recibe exclusivamente
+como un valor opaco ya generado fuera de BusinessFlow, no se devuelve en ninguna respuesta y puede omitirse en
+una actualización para conservar el valor existente. No deben enviarse contraseñas en claro. Este módulo aún no
+implementa login, hashing, autenticación, autorización ni Spring Security.
+
+Los roles de un usuario se administran con estas rutas:
+
+| Método | Ruta | Resultado |
+| --- | --- | --- |
+| `GET` | `/api/usuarios/{usuarioId}/roles` | Lista los roles asignados (`200`) |
+| `POST` | `/api/usuarios/{usuarioId}/roles/{rolId}` | Asigna un rol (`201`) |
+| `DELETE` | `/api/usuarios/{usuarioId}/roles/{rolId}` | Quita la asignación (`204`) |
+
+La tabla puente se modela mediante una entidad de asociación porque conserva la fecha `created_at`. Las
+asignaciones duplicadas devuelven `409`; asignar exige que tanto el usuario como el rol existan y no estén
+eliminados.
+
+Usuarios y roles usan borrado lógico: `DELETE` cambia su estado a `INACTIVE` y registra `deleted_at`. Desde ese
+momento quedan fuera de consultas normales, pero su email o código continúa reservado por la restricción única.
+Un registro `INACTIVE` con `deleted_at` nulo sigue existiendo y continúa accesible.
+
 ## Estructura actual
 
 ```text
@@ -169,6 +201,8 @@ src/main/java/dev/adriangabas/businessflow/
 ├── cliente/
 ├── error/
 ├── producto/
+├── rol/
+├── usuario/
 └── health/HealthController.java
 src/main/resources/application.yml
 src/test/java/dev/adriangabas/businessflow/
