@@ -1,6 +1,6 @@
 # BusinessFlow
 
-BusinessFlow es un backend para un ERP que se desarrollará de forma progresiva. Actualmente incluye la infraestructura base y los módulos de categorías de producto y productos.
+BusinessFlow es un backend para un ERP que se desarrollará de forma progresiva. Actualmente incluye la infraestructura base y los módulos de clientes, categorías de producto y productos.
 
 ## Stack
 
@@ -102,6 +102,35 @@ curl -X POST http://localhost:8080/api/categorias-producto \
 
 La eliminación es lógica: asigna el estado `INACTIVO`, registra `deleted_at` y oculta la categoría de las consultas. El código continúa reservado por la restricción única del esquema.
 
+## Clientes
+
+El CRUD REST está disponible en `/api/clientes`:
+
+| Método | Ruta | Resultado |
+| --- | --- | --- |
+| `POST` | `/api/clientes` | Crea un cliente (`201`) |
+| `GET` | `/api/clientes` | Lista los clientes no eliminados (`200`) |
+| `GET` | `/api/clientes/{id}` | Obtiene un cliente (`200`) |
+| `PUT` | `/api/clientes/{id}` | Actualiza un cliente (`200`) |
+| `DELETE` | `/api/clientes/{id}` | Elimina lógicamente un cliente (`204`) |
+
+Los campos obligatorios son `codigo`, `tipoCliente` (`EMPRESA` o `PARTICULAR`) y `nombre`. El código se
+normaliza eliminando espacios exteriores y convirtiéndolo a mayúsculas. `nombreComercial`,
+`identificacionFiscal`, `email`, `telefono`, `direccion`, `codigoPostal`, `localidad`, `provincia`, `pais` y
+`observaciones` son opcionales. La identificación fiscal y el email no son únicos.
+
+Ejemplo de creación:
+
+```shell
+curl -X POST http://localhost:8080/api/clientes \
+  -H "Content-Type: application/json" \
+  -d '{"codigo":"CLI-1","tipoCliente":"EMPRESA","nombre":"Cliente Uno","email":"cliente@example.com"}'
+```
+
+Un cliente `INACTIVO` continúa visible y accesible mientras `deleted_at` sea nulo. `DELETE` realiza un borrado
+lógico: asigna `INACTIVO`, registra `deleted_at`, oculta el cliente de las consultas normales y mantiene
+reservado su código.
+
 ## Productos
 
 El CRUD REST está disponible en `/api/productos`:
@@ -137,6 +166,7 @@ asigna `INACTIVO`, registra `deleted_at`, lo oculta de las consultas normales y 
 src/main/java/dev/adriangabas/businessflow/
 ├── BusinessFlowApplication.java
 ├── categoria/
+├── cliente/
 ├── error/
 ├── producto/
 └── health/HealthController.java
